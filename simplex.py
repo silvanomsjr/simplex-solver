@@ -1,9 +1,12 @@
 
 def printar_tabela_bonitinha(tabela):
+    string_lin = ''
     for i in range(len(tabela)):
-        print(tabela[i])
-        print('\n')
+        for j in range(len(tabela[0])):
+            string_lin += ' %.6s\t\t'%tabela[i][j]
 
+        print(string_lin)
+        string_lin = ''
 
 def normalizar(A, c):
     for i in range(len(A)):
@@ -30,7 +33,7 @@ def cria_tabela(A, c, b, variaveis_ja_existentes):
             contador_s += 1
         else:
             tabela[0].append('x%d'%(i))
-    tabela[0].append('-')
+    tabela[0].append('b')
 
     contador_s = 1
 
@@ -66,7 +69,15 @@ def passo1(tabela):
 def passo2(tabela, index_passo1):
     col_trabalho = [tabela[i][index_passo1] for i in range(0, len(tabela))][1:-1]
     ult_col = [tabela[i][-1] for i in range(len(tabela))][1:-1]
-    results = [ult_col[i]/col_trabalho[i] for i in range(len(col_trabalho))]
+    if max(col_trabalho) <= 0:
+        print("== Nenhum elemento da coluna de trabalho é positivo, problema sem solução! ==")
+        return -1
+    results = []
+    for i in range(len(col_trabalho)):
+        if ult_col[i] > 0 and col_trabalho[i] > 0:
+            results.append(ult_col[i]/col_trabalho[i])
+        else:
+            results.append(float('inf'))
 
     return results.index(min(results)) + 1
 
@@ -118,19 +129,22 @@ def simplex_uma_fase(A, c, b, maximizacao = True):
 
     variaveis_ja_existentes = len(c)
 
+    # Verificações de entrada
+
+    # real_A = [
+    #     [4,9],
+    #     [10,6]
+    # ]
+
+
+    # real_c = [6,8]
+
+    # real_b = [400,600]
+
 
     normalizar(A, c)
 
     tabela = cria_tabela(A, c, b, variaveis_ja_existentes)
-
-
-
-    # tabela_inicial = [
-    #     ['-', 'x1', 'x2', 's1', 's2', '-'],
-    #     ['s1', 4,    9,     1,   0,   400],
-    #     ['s2', 10,   6,     0,   1,   600],
-    #     ['-',  -6,  -8,     0,   0,     0],
-    # ]
 
     index_passo1 = passo1(tabela)
     contador = 1
@@ -140,38 +154,39 @@ def simplex_uma_fase(A, c, b, maximizacao = True):
 
     while(index_passo1 != -1):
         linha_pivo = passo2(tabela, index_passo1)
+        if linha_pivo == -1: return
         pivo = tabela[linha_pivo][index_passo1]
         passo3(tabela, linha_pivo, index_passo1)
         passo4(tabela, linha_pivo, index_passo1, pivo)
         print('--%d iteração--'%contador)
         printar_tabela_bonitinha(tabela)
+        print('\n')
         contador+=1
         index_passo1 = passo1(tabela)
 
-    print('===== tabela final =======')
+    print('===== Tabela Final =======')
 
     z = tabela[-1][-1] if maximizacao else 0-tabela[-1][-1]
 
 
     printar_tabela_bonitinha(tabela)
 
-    print('\n-O valor final da função Z = ', z)
-    print(z)
+    print('\n= O valor final da função Z = ', z)
     print('\n')
 
     return z
 
 
 real_A = [
-    [4,9],
-    [10,6]
+    [1,1,1],
+    [0,1,2],
+    [-1,2,2],
 ]
 
+real_c = [2,10,8]
 
-real_c = [6,8]
+real_b = [6,8,4]
 
-real_b = [400,600]
-
-simplex_uma_fase(real_A, real_c, real_b)
+simplex_uma_fase(real_A, real_c, real_b, False)
 
 
