@@ -2,8 +2,18 @@
 def printar_tabela_bonitinha(tabela):
     string_lin = ''
     for i in range(len(tabela)):
-        for j in range(len(tabela[0])):
-            string_lin += ' %.6s\t'%tabela[i][j]
+        primeira_coluna_var = tabela[i][0]
+        for j in range(1, len(tabela[0])):
+            if i == 0:
+                string_lin += ' %s\t'%tabela[i][j-1]
+            else:
+                string_lin += ' %.2f\t'%tabela[i][j]
+        
+        if primeira_coluna_var != '-':
+            string_lin = '%s\t'%primeira_coluna_var + string_lin
+
+        if i >= len(tabela) - 1:
+            string_lin = '-\t' + string_lin
 
         print(string_lin)
         string_lin = ''
@@ -149,7 +159,6 @@ def passo3(tabela, linha, col):
     tabela[0][col] = var_linha
     printar_tabela_bonitinha(tabela)
 
-
 def passo4(tabela, linha, col, pivo):
     print("==== PASSO 4 ====")
     nova_linha_pivo = [tabela[linha][j]/pivo if tabela[linha][j] != 0 and pivo != 0 else 0 for j in range(1, len(tabela[linha]))]
@@ -158,7 +167,10 @@ def passo4(tabela, linha, col, pivo):
 
     for i in range(1, len(tabela)):
         if(i != linha):
-            nova_linha = [tabela[i][j] + (-tabela[i][col]) * nova_linha_pivo[j] for j in range(1, len(nova_linha_pivo))]
+            nova_linha = [] 
+            for j in range(1, len(nova_linha_pivo)):
+                nova_linha.append(round(tabela[i][j]-tabela[i][col] * nova_linha_pivo[j], 5))
+
             nova_linha.insert(0, tabela[i][0])
             tabela[i] = nova_linha
 
@@ -174,6 +186,20 @@ def passo5(tabela):
     if contador == len(ultima_linha):
         tabela.pop(-1)
 
+
+
+def checa_artificiais_primeira_coluna(tabela):
+    for i in range(1, len(tabela)-1):
+        if tabela[i][0][0] == 'a':
+            return True
+    return False
+
+def pega_valor_final_variaveis(tabela):
+    result = []
+    for i in range(1, len(tabela)-1):
+        if tabela[i][0][0] == 'x':
+            result.append((tabela[i][0], i))
+    return result
 
 '''
     A = Matriz das restrições
@@ -194,8 +220,7 @@ def simplex_duas_fases(A, c, b, sinais, maximizacao= True):
     tabela_len = len(tabela)
     while(index_passo1 != -1):
         contador+=1
-        print("==== %d iteração ====\n"%contador)
-        print('\n')
+        print("\n\n============ %d iteração ============\n\n"%contador)
         linha_pivo = passo2(tabela, index_passo1)
         if linha_pivo == -1: return
         pivo = tabela[linha_pivo][index_passo1]
@@ -204,8 +229,20 @@ def simplex_duas_fases(A, c, b, sinais, maximizacao= True):
         if len(tabela) == tabela_len:
             passo5(tabela)
         index_passo1 = passo1(tabela)
-        print(index_passo1)
     z = tabela[-1][-1] if maximizacao == True else -tabela[-1][-1]
+
+    tem_artificial = checa_artificiais_primeira_coluna(tabela)
+    if tem_artificial:
+        print("\n\n == ENCONTRADA VARIÁVEIS ARTIFICIAIS NA PRIMEIRA COLUNA, SOLUÇÃO INVIÁVEL!! ==\n\n")
+        return -1
+    
+    variaveis_finais = pega_valor_final_variaveis(tabela)
+
+    print("\n\n == RESULTADO FINAL ==")
+    print("Z = ", round(z,2))
+    for i in range(len(variaveis_finais)):
+        print("%s = %s"%(variaveis_finais[i][0], round(tabela[variaveis_finais[i][1]][len(tabela[0])-1], 2)))
+
 
     return z
 
@@ -225,4 +262,4 @@ real_c = [80, 32]
 
 real_b = [0.4,0.6,2.0,1.7]
 
-simplex_duas_fases(real_A, real_c, real_b, sinais)
+simplex_duas_fases(real_A, real_c, real_b, sinais, False)

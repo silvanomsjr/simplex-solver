@@ -96,7 +96,7 @@ def passo4(tabela, linha, col, pivo):
 
     for i in range(1, len(tabela)):
         if(i != linha):
-            nova_linha = [(nova_linha_pivo[j] * (0 -tabela[i][col]) + tabela[i][j]) for j in range(1,len(nova_linha_pivo))]
+            nova_linha = [round(tabela[i][j]-tabela[i][col] * nova_linha_pivo[j], 5) for j in range(1,len(nova_linha_pivo))]
             nova_linha.insert(0, tabela[i][0])
             tabela[i] = nova_linha
 
